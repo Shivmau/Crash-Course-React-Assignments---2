@@ -58,53 +58,82 @@ After creating your project, you'll see several files and folders:
 
 ### Problem 1: Fetching and Displaying Data with Axios
 
-Here is an example using `Users` and `User` components to fetch and display user data from an API using Axios as soon as component mounts
+Here in this example; you can see how side effects are handled during update phase. ( Basically API call that is being made here as soon as component mounts or whenever page state changes )
 
 ```jsx
 // src/components/Users.jsx
 
+// Import necessary hooks from React
 import { useState, useEffect } from "react";
+// Import axios for making HTTP requests
 import axios from "axios";
+// Import custom components
 import User from "./User";
 import LoadingIndicator from "./LoadingIndicator";
 import ErrorIndicator from "./ErrorIndicator";
 
 function Users() {
-  const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState([]);
-  const [error, setError] = useState(false);
+  // Declare state variables
+  const [loading, setLoading] = useState(false); // to manage loading state
+  const [users, setUsers] = useState([]); // to store the fetched users
+  const [error, setError] = useState(false); // to manage error state
+  const [page, setPage] = useState(1); // to track the current page
+  const [totalPages, setTotalPages] = useState(1); // to store total number of pages
 
-  async function fetchAndUpdateData() {
-    setLoading(true);
+  // Function to fetch and update data from the API
+  async function fetchAndUpdateData(page) {
+    setLoading(true); // set loading to true when starting the request
     try {
+      // Make a GET request to the API
       let res = await axios({
         method: "get",
-        url: `https://reqres.in/api/users`,
+        url: `https://reqres.in/api/users?page=${page}`, // URL with dynamic page number
       });
 
+      // Update users and totalPages state with the response data
       setUsers(res?.data?.data);
-      setLoading(false);
+      setTotalPages(Number(res?.data?.total_pages));
+      setLoading(false); // set loading to false after the request is successful
     } catch (error) {
-      setError(true);
-      setLoading(false);
+      setError(true); // set error to true if there's an error
+      setLoading(false); // set loading to false after the request fails
     }
   }
 
+  // useEffect hook to fetch data whenever the page state changes
   useEffect(() => {
-    fetchAndUpdateData();
-  }, []);
+    fetchAndUpdateData(page);
+  }, [page]);
 
+  // If loading is true, display the LoadingIndicator component
   if (loading) {
     return <LoadingIndicator />;
   }
 
+  // If error is true, display the ErrorIndicator component
   if (error) {
     return <ErrorIndicator />;
   }
 
   return (
     <div>
+      <div id="pagination">
+        {/* Button to go to the previous page, disabled if already on the first page */}
+        <button disabled={page === 1} onClick={() => setPage(page - 1)}>
+          PREVIOUS
+        </button>
+        {/* Display the current page number */}
+        <p>{page}</p>
+        {/* Button to go to the next page, disabled if already on the last page */}
+        <button
+          disabled={page === totalPages}
+          onClick={() => setPage(page + 1)}
+        >
+          NEXT
+        </button>
+      </div>
       <h1>List of users</h1>
+      {/* Map through the users array and render a User component for each user */}
       {users?.map((user) => (
         <User {...user} key={user.id} />
       ))}
@@ -112,7 +141,7 @@ function Users() {
   );
 }
 
-export default Users;
+export default Users; // Export the Users component for use in other parts of the app
 ```
 
 ```jsx
@@ -133,7 +162,7 @@ function User({ avatar, email, first_name, last_name }) {
 export default User;
 ```
 
-Now, you have to complete the code in the `Posts` and `Post` components. The `Posts` component should fetch a list of posts from an API using Axios ( Perform side effect ) as soon as component mounts and display them using the `Post` component. Complete the Missing Code
+Now, you have to complete the code in the `Posts` and `Post` components. Complete the missing part in Post component such that the side effects are performed as soon as component or whenever page state changes ( Basically API calls are made during mount phase or whenever page state changes )
 
 ```jsx
 // src/components/Posts.jsx
@@ -148,25 +177,28 @@ function Posts() {
   const [loading, setLoading] = useState(false);
   const [posts, setPosts] = useState([]);
   const [error, setError] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  async function fetchAndUpdateData() {
-    {
-      /*Complete the missing code*/
-    }
+  async function fetchAndUpdateData(page) {
+    setLoading(true);
     try {
-      {
-        /*Complete the missing code*/
-      }
+      let res = await axios({
+        method: "get",
+        url: `https://jsonplaceholder.typicode.com/posts?_limit=10&page=${page}`,
+      });
+
+      setTotalPages(Math.ceil(Number(res?.headers["x-total-count"]) / 10));
+      /*Complete the missing code*/
     } catch (error) {
-      {
-        /*Complete the missing code*/
-      }
+      setError(true);
+      setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchAndUpdateData();
-  }, []);
+    /*Complete the missing code*/
+  }, [page]);
 
   if (loading) {
     return <LoadingIndicator />;
@@ -178,9 +210,26 @@ function Posts() {
 
   return (
     <div>
+      <div id="pagination">
+        {/* Button to go to the previous page, disabled if already on the first page */}
+        <button disabled={page === 1} onClick={() => setPage(page - 1)}>
+          PREVIOUS
+        </button>
+        {/* Display the current page number */}
+        <p>{page}</p>
+        {/* Button to go to the next page, disabled if already on the last page */}
+        <button
+          disabled={page === totalPages}
+          onClick={() => setPage(page + 1)}
+        >
+          NEXT
+        </button>
+      </div>
       <h1>List of Posts</h1>
 
-      {/*Complete the missing code*/}
+      {posts?.map((post) => (
+        <Post {...post} key={post.id} />
+      ))}
     </div>
   );
 }
